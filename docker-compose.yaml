@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # web port
+      - "5005:5005" # debug port
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/book_store
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=verYs3cret
+      - POSTGRES_SCHEMA=book_store
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - POSTGRES_DB=book_store
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=verYs3cret
+    ports:
+      - '5433:5432'
+
+#  docker-compose up --build
