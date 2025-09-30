@@ -149,7 +149,8 @@ public class Mapper {
                 order.getId(),
                 order.getOrderDate(),
                 booksDto,
-                order.getCreatedAt()
+                order.getCreatedAt(),
+                order.getStatus()
         );
     }
 

@@ -1,6 +1,8 @@
 package md.usm.bookstore.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 
 @Entity
@@ -13,6 +15,7 @@ public class User extends BaseEntity {
 
     private String password;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     public String getUsername() {

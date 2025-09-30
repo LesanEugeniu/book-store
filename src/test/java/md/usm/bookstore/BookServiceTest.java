@@ -6,9 +6,7 @@ import md.usm.bookstore.dto.CategoryDto;
 import md.usm.bookstore.exception.StoreException;
 import md.usm.bookstore.model.Author;
 import md.usm.bookstore.model.Category;
-import md.usm.bookstore.repository.AuthorRepository;
-import md.usm.bookstore.repository.BookRepository;
-import md.usm.bookstore.repository.CategoryRepository;
+import md.usm.bookstore.repository.*;
 import md.usm.bookstore.service.AuthorService;
 import md.usm.bookstore.service.BookService;
 import md.usm.bookstore.service.CategoryService;
@@ -25,13 +23,20 @@ import static org.junit.jupiter.api.Assertions.*;
 class BookServiceTest {
 
     @Autowired
-    private BookRepository bookRepository;
+    UserRepository userRepository;
 
     @Autowired
-    private AuthorRepository authorRepository;
+
+    BookRepository bookRepository;
 
     @Autowired
-    private CategoryRepository categoryRepository;
+    AuthorRepository authorRepository;
+
+    @Autowired
+    CategoryRepository categoryRepository;
+
+    @Autowired
+    OrderRepository orderRepository;
 
     @Autowired
     private AuthorService authorService;
@@ -51,9 +56,11 @@ class BookServiceTest {
 
     @BeforeEach
     void setUp() {
+        orderRepository.deleteAll();
         bookRepository.deleteAll();
-        authorRepository.deleteAll();
         categoryRepository.deleteAll();
+        authorRepository.deleteAll();
+        userRepository.deleteAll();
 
         author = new Author();
         author.setFirstName("John");

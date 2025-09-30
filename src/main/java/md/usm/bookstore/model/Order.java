@@ -23,6 +23,7 @@ public class Order extends BaseEntity {
     )
     private Set<Book> books;
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
     public LocalDateTime getOrderDate() {

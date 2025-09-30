@@ -1,5 +1,7 @@
 package md.usm.bookstore.dto;
 
+import md.usm.bookstore.model.OrderStatus;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,6 +12,8 @@ public record OrderDto(
 
         List<BookDto> books,
 
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+
+        OrderStatus orderStatus
 ) {
 }

@@ -17,6 +17,14 @@ public class Author extends BaseEntity {
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private List<Book> books = new ArrayList<>();
 
+    public Author() {
+    }
+
+    public Author(String lastName, String firstName) {
+        this.lastName = lastName;
+        this.firstName = firstName;
+    }
+
     public String getFirstName() {
         return firstName;
     }

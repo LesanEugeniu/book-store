@@ -23,6 +23,17 @@ public class Book extends BaseEntity {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    public Book() {
+    }
+
+    public Book(String title, String isbn, Double price, Author author, Category category) {
+        this.title = title;
+        this.isbn = isbn;
+        this.price = price;
+        this.author = author;
+        this.category = category;
+    }
+
     public String getTitle() {
         return title;
     }

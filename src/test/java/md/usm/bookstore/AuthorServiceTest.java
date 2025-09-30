@@ -2,7 +2,7 @@ package md.usm.bookstore;
 
 import md.usm.bookstore.dto.AuthorDto;
 import md.usm.bookstore.model.Author;
-import md.usm.bookstore.repository.AuthorRepository;
+import md.usm.bookstore.repository.*;
 import md.usm.bookstore.service.AuthorService;
 import md.usm.bookstore.utils.Mapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,15 @@ import static org.junit.jupiter.api.Assertions.*;
 class AuthorServiceTest {
 
     @Autowired
-    private AuthorRepository authorRepository;
+    UserRepository userRepository;
+    @Autowired
+    BookRepository bookRepository;
+    @Autowired
+    AuthorRepository authorRepository;
+    @Autowired
+    CategoryRepository categoryRepository;
+    @Autowired
+    OrderRepository orderRepository;
 
     @Autowired
     private Mapper mapper;
@@ -30,7 +38,11 @@ class AuthorServiceTest {
 
     @BeforeEach
     void setUp() {
+        orderRepository.deleteAll();
+        bookRepository.deleteAll();
+        categoryRepository.deleteAll();
         authorRepository.deleteAll();
+        userRepository.deleteAll();
 
         authorDto = new AuthorDto(
                 null,

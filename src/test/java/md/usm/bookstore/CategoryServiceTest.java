@@ -2,8 +2,7 @@ package md.usm.bookstore;
 
 import md.usm.bookstore.dto.CategoryDto;
 import md.usm.bookstore.model.Category;
-import md.usm.bookstore.repository.BookRepository;
-import md.usm.bookstore.repository.CategoryRepository;
+import md.usm.bookstore.repository.*;
 import md.usm.bookstore.service.CategoryService;
 import md.usm.bookstore.utils.Mapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +20,20 @@ import static org.junit.jupiter.api.Assertions.*;
 class CategoryServiceTest {
 
     @Autowired
-    private CategoryRepository categoryRepository;
+    UserRepository userRepository;
+
+    @Autowired
+
+    BookRepository bookRepository;
+
+    @Autowired
+    AuthorRepository authorRepository;
+
+    @Autowired
+    CategoryRepository categoryRepository;
+
+    @Autowired
+    OrderRepository orderRepository;
 
     @Autowired
     private Mapper mapper;
@@ -29,15 +41,15 @@ class CategoryServiceTest {
     @Autowired
     private CategoryService categoryService;
 
-    @Autowired
-    private BookRepository bookRepository;
-
     private CategoryDto categoryDto;
 
     @BeforeEach
     void setUp() {
+        orderRepository.deleteAll();
         bookRepository.deleteAll();
         categoryRepository.deleteAll();
+        authorRepository.deleteAll();
+        userRepository.deleteAll();
 
         categoryDto = new CategoryDto(
                 null,

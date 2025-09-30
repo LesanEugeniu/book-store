@@ -119,10 +119,11 @@ public class OrderService {
     public Page<OrderDto> getMyOrders(Principal principal, Pageable pageable) {
         User user = userService.getByUsername(principal.getName());
 
-        List<Order> orders = orderRepository.findAllByUserIdWithBooksAndUser(user.getId(), pageable);
+        Page<Order> orders = orderRepository.findByUserId(user.getId(), pageable);
+        List<Order> allWithBooks = orderRepository.findAllWithBooks(orders.getContent());
         long total = orderRepository.countByUserId(user.getId());
 
-        return new PageImpl<>(orders.stream().map(mapper::toDto).toList(), pageable, total);
+        return new PageImpl<>(allWithBooks.stream().map(mapper::toDto).toList(), pageable, total);
     }
 
     public String payOrder(Principal principal, Long orderId, PaymentDto paymentDto) {

@@ -3,9 +3,7 @@ package md.usm.bookstore;
 import md.usm.bookstore.dto.OrderDto;
 import md.usm.bookstore.dto.PaymentDto;
 import md.usm.bookstore.model.*;
-import md.usm.bookstore.repository.BookRepository;
-import md.usm.bookstore.repository.OrderRepository;
-import md.usm.bookstore.repository.UserRepository;
+import md.usm.bookstore.repository.*;
 import md.usm.bookstore.service.OrderService;
 import md.usm.bookstore.utils.Mapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,19 +23,26 @@ import static org.junit.jupiter.api.Assertions.*;
 class OrderServiceTest {
 
     @Autowired
-    private OrderRepository orderRepository;
+    UserRepository userRepository;
 
     @Autowired
-    private BookRepository bookRepository;
+
+    BookRepository bookRepository;
+
+    @Autowired
+    AuthorRepository authorRepository;
+
+    @Autowired
+    CategoryRepository categoryRepository;
+
+    @Autowired
+    OrderRepository orderRepository;
 
     @Autowired
     private Mapper mapper;
 
     @Autowired
     private OrderService orderService;
-
-    @Autowired
-    private UserRepository userRepository;
 
     private OrderDto orderDto;
     private User testUser;
@@ -47,6 +52,8 @@ class OrderServiceTest {
     void setUp() {
         orderRepository.deleteAll();
         bookRepository.deleteAll();
+        categoryRepository.deleteAll();
+        authorRepository.deleteAll();
         userRepository.deleteAll();
 
         Book book = new Book();
@@ -63,7 +70,7 @@ class OrderServiceTest {
         userRepository.save(testUser);
 
         orderDto = new OrderDto(null, LocalDateTime.now(),
-                Collections.singletonList(mapper.toDto(book)), null);
+                Collections.singletonList(mapper.toDto(book)), null, OrderStatus.CREATED);
 
         principal = () -> "john";
     }
@@ -97,7 +104,8 @@ class OrderServiceTest {
     void update_ShouldModifyOrder() {
         OrderDto created = orderService.create(orderDto, principal);
 
-        OrderDto updateDto = new OrderDto(null, LocalDateTime.now().plusDays(1), null, null);
+        OrderDto updateDto = new OrderDto(null, LocalDateTime.now().plusDays(1), null, null,
+                OrderStatus.CREATED);
         OrderDto updated = orderService.update(created.id(), updateDto, () -> testUser.getUsername());
 
         assertEquals(updateDto.orderDate(), updated.orderDate());

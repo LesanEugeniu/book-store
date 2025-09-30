@@ -29,6 +29,13 @@ public class Category extends BaseEntity {
         return books;
     }
 
+    public Category() {
+    }
+
+    public Category(String name) {
+        this.name = name;
+    }
+
     public void addBook(Book book) {
         book.setCategory(this);
         this.books.add(book);
