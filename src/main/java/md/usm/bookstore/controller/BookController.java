@@ -1,8 +1,8 @@
-package library.md.librarymanagementsystemback.controller;
+package md.usm.bookstore.controller;
 
 import jakarta.validation.Valid;
-import library.md.librarymanagementsystemback.dto.BookDto;
-import library.md.librarymanagementsystemback.service.BookService;
+import md.usm.bookstore.dto.BookDto;
+import md.usm.bookstore.service.BookService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
