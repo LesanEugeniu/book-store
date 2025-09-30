@@ -1,4 +1,4 @@
-package md.usm.bookstore.services;
+package md.usm.bookstore.service;
 
 import md.usm.bookstore.dto.CategoryDto;
 import md.usm.bookstore.exception.StoreException;
