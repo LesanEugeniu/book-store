@@ -1,4 +1,4 @@
-package md.usm.bookstore.services;
+package md.usm.bookstore.service;
 
 
 import md.usm.bookstore.dto.BookDto;
@@ -7,8 +7,6 @@ import md.usm.bookstore.dto.PaymentDto;
 import md.usm.bookstore.exception.StoreException;
 import md.usm.bookstore.model.*;
 import md.usm.bookstore.repository.OrderRepository;
-import md.usm.bookstore.service.BookService;
-import md.usm.bookstore.service.UserService;
 import md.usm.bookstore.utils.Mapper;
 import md.usm.bookstore.utils.Utils;
 import org.springframework.data.domain.Page;
