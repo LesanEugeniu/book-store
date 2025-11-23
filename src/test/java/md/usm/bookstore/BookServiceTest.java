@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
+
 import static md.usm.bookstore.utils.ErrorType.VALIDATION_ERROR;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -76,7 +78,7 @@ class BookServiceTest {
                 "Test Book",
                 "12345",
                 50.0,
-                mapper.toDto(author),
+                List.of(mapper.toDto(author)),
                 mapper.toDto(category),
                 null
         );

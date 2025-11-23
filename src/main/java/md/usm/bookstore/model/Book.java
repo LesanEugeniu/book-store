@@ -1,10 +1,9 @@
 package md.usm.bookstore.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -15,9 +14,13 @@ public class Book extends BaseEntity {
     private String isbn;
     private Double price;
 
-    @ManyToOne
-    @JoinColumn(name = "author_id")
-    private Author author;
+    @ManyToMany
+    @JoinTable(
+            name = "authors_books",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "author_id")
+    )
+    private List<Author> authors = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "category_id")
@@ -26,11 +29,11 @@ public class Book extends BaseEntity {
     public Book() {
     }
 
-    public Book(String title, String isbn, Double price, Author author, Category category) {
+    public Book(String title, String isbn, Double price, List<Author> authors, Category category) {
         this.title = title;
         this.isbn = isbn;
         this.price = price;
-        this.author = author;
+        this.authors = authors;
         this.category = category;
     }
 
@@ -58,12 +61,12 @@ public class Book extends BaseEntity {
         this.price = price;
     }
 
-    public Author getAuthor() {
-        return author;
+    public List<Author> getAuthors() {
+        return authors;
     }
 
-    public void setAuthor(Author author) {
-        this.author = author;
+    public void setAuthors(List<Author> authors) {
+        this.authors = authors;
     }
 
     public Category getCategory() {
@@ -74,21 +77,25 @@ public class Book extends BaseEntity {
         this.category = category;
     }
 
+    public void addAuthor(Author author) {
+        this.authors.add(author);
+        author.getBooks().add(this);
+    }
+
+    public void removeAuthor(Author author) {
+        this.authors.remove(author);
+        author.getBooks().remove(this);
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Book book = (Book) o;
-        return Objects.equals(title, book.title) && Objects.equals(isbn, book.isbn) && Objects.equals(price, book.price) && Objects.equals(author, book.author) && Objects.equals(category, book.category);
+        if (this == o) return true;
+        if (!(o instanceof Book)) return false;
+        return getId() != null && getId().equals(((Book) o).getId());
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(title);
-        result = 31 * result + Objects.hashCode(isbn);
-        result = 31 * result + Objects.hashCode(price);
-        result = 31 * result + Objects.hashCode(author);
-        result = 31 * result + Objects.hashCode(category);
-        return result;
+        return Objects.hash(getId());
     }
 }

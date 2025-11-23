@@ -4,11 +4,17 @@ import md.usm.bookstore.dto.*;
 import md.usm.bookstore.model.*;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 public class Mapper {
+
+    /* =======================
+     *     AUTHOR MAPPING
+     * ======================= */
 
     public AuthorDto toDto(Author author) {
         if (author == null) return null;
@@ -27,6 +33,18 @@ public class Mapper {
         );
     }
 
+    public AuthorDto toAuthorDtoWithoutBooks(Author author) {
+        if (author == null) return null;
+
+        return new AuthorDto(
+                author.getId(),
+                author.getFirstName(),
+                author.getLastName(),
+                null,
+                author.getCreatedAt()
+        );
+    }
+
     public Author toEntity(AuthorDto dto) {
         if (dto == null) return null;
 
@@ -34,13 +52,21 @@ public class Mapper {
         author.setId(dto.id());
         author.setFirstName(dto.firstName());
         author.setLastName(dto.lastName());
+
         if (dto.books() != null) {
             author.setBooks(dto.books().stream()
                     .map(this::toEntity)
                     .collect(Collectors.toList()));
+        } else {
+            author.setBooks(new ArrayList<>());
         }
+
         return author;
     }
+
+    /* =======================
+     *      BOOK MAPPING
+     * ======================= */
 
     public BookDto toDto(Book book) {
         if (book == null) return null;
@@ -50,32 +76,9 @@ public class Mapper {
                 book.getTitle(),
                 book.getIsbn(),
                 book.getPrice(),
-                toDtoWithoutBooks(book.getAuthor()),
-                toDtoWithoutBooks(book.getCategory()),
+                book.getAuthors() == null ? null : book.getAuthors().stream().map(this::toAuthorDtoWithoutBooks).toList(),
+                book.getCategory() == null ? null : toCategoryDtoWithoutBooks(book.getCategory()),
                 book.getCreatedAt()
-        );
-    }
-
-    public CategoryDto toDtoWithoutBooks(Category category) {
-        if (category == null) return null;
-
-        return new CategoryDto(
-                category.getId(),
-                category.getName(),
-                null,
-                category.getCreatedAt()
-        );
-    }
-
-    public AuthorDto toDtoWithoutBooks(Author author) {
-        if (author == null) return null;
-
-        return new AuthorDto(
-                author.getId(),
-                author.getFirstName(),
-                author.getLastName(),
-                null,
-                author.getCreatedAt()
         );
     }
 
@@ -93,7 +96,6 @@ public class Mapper {
         );
     }
 
-
     public Book toEntity(BookDto dto) {
         if (dto == null) return null;
 
@@ -102,10 +104,23 @@ public class Mapper {
         book.setTitle(dto.title());
         book.setIsbn(dto.isbn());
         book.setPrice(dto.price());
-        book.setAuthor(toEntity(dto.author()));
+
+        if (dto.authors() != null) {
+            book.setAuthors(dto.authors().stream()
+                    .map(this::toEntity)
+                    .collect(Collectors.toList()));
+        } else {
+            book.setAuthors(new ArrayList<>());
+        }
+
         book.setCategory(toEntity(dto.category()));
+
         return book;
     }
+
+    /* =======================
+     *    CATEGORY MAPPING
+     * ======================= */
 
     public CategoryDto toDto(Category category) {
         if (category == null) return null;
@@ -123,19 +138,38 @@ public class Mapper {
         );
     }
 
+    public CategoryDto toCategoryDtoWithoutBooks(Category category) {
+        if (category == null) return null;
+
+        return new CategoryDto(
+                category.getId(),
+                category.getName(),
+                null,
+                category.getCreatedAt()
+        );
+    }
+
     public Category toEntity(CategoryDto dto) {
         if (dto == null) return null;
 
         Category category = new Category();
         category.setId(dto.id());
         category.setName(dto.name());
+
         if (dto.books() != null) {
             category.setBooks(dto.books().stream()
                     .map(this::toEntity)
                     .collect(Collectors.toList()));
+        } else {
+            category.setBooks(new ArrayList<>());
         }
+
         return category;
     }
+
+    /* =======================
+     *      ORDER MAPPING
+     * ======================= */
 
     public OrderDto toDto(Order order) {
         if (order == null) return null;
@@ -160,13 +194,21 @@ public class Mapper {
         Order order = new Order();
         order.setId(dto.id());
         order.setOrderDate(dto.orderDate());
+
         if (dto.books() != null) {
             order.setBooks(dto.books().stream()
                     .map(this::toEntity)
                     .collect(Collectors.toSet()));
+        } else {
+            order.setBooks(Set.of());
         }
+
         return order;
     }
+
+    /* =======================
+     *       USER MAPPING
+     * ======================= */
 
     public UserDto toDto(User user) {
         if (user == null) return null;
@@ -193,5 +235,4 @@ public class Mapper {
 
         return user;
     }
-
 }

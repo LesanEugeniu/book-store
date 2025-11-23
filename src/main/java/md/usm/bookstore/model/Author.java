@@ -2,11 +2,12 @@ package md.usm.bookstore.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "authors")
@@ -14,7 +15,7 @@ public class Author extends BaseEntity {
     private String firstName;
     private String lastName;
 
-    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "authors", fetch = FetchType.LAZY)
     private List<Book> books = new ArrayList<>();
 
     public Author() {
@@ -45,27 +46,30 @@ public class Author extends BaseEntity {
         return books;
     }
 
-    public void addBook(Book book) {
-        book.setAuthor(this);
-        this.books.add(book);
-    }
-
     public void setBooks(List<Book> books) {
         this.books = books;
     }
 
+    public void addBook(Book book) {
+        this.books.add(book);
+        book.getAuthors().add(this);
+    }
+
+    public void removeBook(Book book) {
+        this.books.remove(book);
+        book.getAuthors().remove(this);
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Author author = (Author) o;
-        return firstName.equals(author.firstName) && lastName.equals(author.lastName);
+        if (this == o) return true;
+        if (!(o instanceof Author)) return false;
+        return getId() != null && getId().equals(((Author) o).getId());
     }
 
     @Override
     public int hashCode() {
-        int result = firstName.hashCode();
-        result = 31 * result + lastName.hashCode();
-        return result;
+        return Objects.hash(getId());
     }
+
 }

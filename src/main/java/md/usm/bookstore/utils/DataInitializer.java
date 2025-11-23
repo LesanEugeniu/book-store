@@ -44,19 +44,19 @@ public class DataInitializer {
             Category classic = new Category("Classic");
 
             // Books
-            Book book1 = new Book("1984", "9780451524935", 15.99, author1, fiction);
-            Book book2 = new Book("Animal Farm", "9780451526342", 12.99, author1, fiction);
+            Book book1 = new Book("1984", "9780451524935", 15.99, List.of(author1, author2, author3), fiction);
+            Book book2 = new Book("Animal Farm", "9780451526342", 12.99, List.of(author1), fiction);
 
-            Book book3 = new Book("Harry Potter and the Philosopher's Stone", "9780747532699", 29.99, author2, fantasy);
-            Book book4 = new Book("Harry Potter and the Chamber of Secrets", "9780439064873", 24.99, author2, fantasy);
+            Book book3 = new Book("Harry Potter and the Philosopher's Stone", "9780747532699", 29.99, List.of(author1, author2, author3, author4, author5), fantasy);
+            Book book4 = new Book("Harry Potter and the Chamber of Secrets", "9780439064873", 24.99, List.of(author2, author5), fantasy);
 
-            Book book5 = new Book("Crime and Punishment", "9780140449136", 19.99, author3, classic);
-            Book book6 = new Book("The Brothers Karamazov", "9780374528379", 21.99, author3, classic);
+            Book book5 = new Book("Crime and Punishment", "9780140449136", 19.99, List.of(author3, author4, author5), classic);
+            Book book6 = new Book("The Brothers Karamazov", "9780374528379", 21.99, List.of(author3, author1, author2), classic);
 
-            Book book7 = new Book("To Kill a Mockingbird", "9780061120084", 14.99, author4, fiction);
+            Book book7 = new Book("To Kill a Mockingbird", "9780061120084", 14.99, List.of(author4), fiction);
 
-            Book book8 = new Book("The Lord of the Rings", "9780544003415", 39.99, author5, fantasy);
-            Book book9 = new Book("The Hobbit", "9780261103344", 25.99, author5, fantasy);
+            Book book8 = new Book("The Lord of the Rings", "9780544003415", 39.99, List.of(author5, author2, author3), fantasy);
+            Book book9 = new Book("The Hobbit", "9780261103344", 25.99, List.of(author2), fantasy);
 
             // Save data
             categoryRepository.saveAll(List.of(fiction, fantasy, classic));

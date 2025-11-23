@@ -1,5 +1,6 @@
 package md.usm.bookstore.service;
 
+import md.usm.bookstore.dto.AuthorDto;
 import md.usm.bookstore.dto.BookDto;
 import md.usm.bookstore.exception.StoreException;
 import md.usm.bookstore.model.Author;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,16 +49,20 @@ public class BookService {
         checkAuthorAndAuthorId(bookDto);
         checkCategoryAndCategoryId(bookDto);
 
-        Author author = authorService.getEntityById(bookDto.author().id());
+        List<Author> authorsFromDb = new ArrayList<>();
+
+        bookDto.authors().forEach(authorDto -> authorsFromDb.add(authorService.getEntityById(authorDto.id())));
+
         Category category = categoryService.getEntityById(bookDto.category().id());
 
         Book book = mapper.toEntity(bookDto);
 
         Book savedBook = bookRepository.save(book);
 
-        author.addBook(book);
-        authorRepository.save(author);
-
+        for(Author a: authorsFromDb) {
+            a.addBook(book);
+            authorRepository.save(a);
+        }
         category.addBook(book);
         categoryRepository.save(category);
 
@@ -64,8 +70,10 @@ public class BookService {
     }
 
     public Page<BookDto> getAll(Pageable pageable) {
-        return bookRepository.findAll(pageable)
-                .map(mapper::toDto);
+        Page<Book> books = bookRepository.findAll(pageable);
+        List<Book> content = books.getContent();
+        content.forEach(book -> book.setAuthors(authorService.getAllAuthorsByBookId(book.getId())));
+        return books.map(mapper::toDto);
     }
 
     public BookDto getById(Long id) {
@@ -73,7 +81,7 @@ public class BookService {
     }
 
     public Book getEntityById(Long id) {
-        return bookRepository.findById(id)
+        return bookRepository.findByIdWithAuthors(id)
                 .orElseThrow(() -> new StoreException(
                         "Book not found with id " + id,
                         ErrorType.NOT_FOUND.name(),
@@ -88,11 +96,21 @@ public class BookService {
         if (bookDto.title() != null) book.setTitle(bookDto.title());
         if (bookDto.isbn() != null) book.setIsbn(bookDto.isbn());
         if (bookDto.price() != null) book.setPrice(bookDto.price());
-        if (bookDto.author() != null) {
-            checkAuthorAndAuthorId(bookDto);
-            Author author = authorService.getEntityById(bookDto.author().id());
-            author.addBook(book);
-            authorRepository.save(author);
+        if (bookDto.authors() != null) {
+
+            if (book.getAuthors() != null) {
+                for (Author author : new ArrayList<>(book.getAuthors())) {
+                    book.removeAuthor(author);
+                }
+            }
+            List<Author> newAuthors =
+                    authorService.getEntityListById(
+                            bookDto.authors().stream().map(AuthorDto::id).toList()
+                    );
+
+            newAuthors.forEach(book::addAuthor);
+
+            bookRepository.save(book);
         }
         if (bookDto.category() != null) {
             checkCategoryAndCategoryId(bookDto);
@@ -111,7 +129,7 @@ public class BookService {
     }
 
     private void checkAuthorAndAuthorId(BookDto bookDto) {
-        if (bookDto.author() == null || bookDto.author().id() == null) {
+        if (bookDto.authors() == null || bookDto.authors().stream().anyMatch(a -> a.id() == null)) {
             throw new StoreException(
                     "Author ID is required",
                     VALIDATION_ERROR.name(),

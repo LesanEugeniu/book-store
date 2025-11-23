@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record BookDto(
         Long id,
@@ -19,7 +20,7 @@ public record BookDto(
         @Positive(message = "Price must be positive")
         Double price,
 
-        AuthorDto author,
+        List<AuthorDto> authors,
 
         CategoryDto category,
 

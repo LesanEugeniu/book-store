@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -65,6 +66,13 @@ public class AuthorService {
                 ));
     }
 
+    public List<Author> getEntityListById(List<Long> ids) {
+        List<Author> authors = new ArrayList<>();
+        ids.forEach(id -> authors.add(this.getEntityById(id)));
+
+        return authors;
+    }
+
     @Transactional
     public AuthorDto update(Long id, AuthorDto dto) {
         Author existing = getEntityById(id);
@@ -83,6 +91,10 @@ public class AuthorService {
     public void delete(Long id) {
         Author existing = getEntityById(id);
         authorRepository.delete(existing);
+    }
+
+    public List<Author> getAllAuthorsByBookId(Long id) {
+        return authorRepository.findAllByBookId(id);
     }
 
 }
