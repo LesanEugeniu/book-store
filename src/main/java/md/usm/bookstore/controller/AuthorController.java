@@ -2,12 +2,13 @@ package md.usm.bookstore.controller;
 
 import jakarta.validation.Valid;
 import md.usm.bookstore.dto.AuthorDto;
+import md.usm.bookstore.model.Role;
 import md.usm.bookstore.service.AuthorService;
+import md.usm.bookstore.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,38 +17,47 @@ public class AuthorController {
 
     private final AuthorService authorService;
 
-    public AuthorController(AuthorService authorService) {
+    private final UserService userService;
+
+    public AuthorController(AuthorService authorService, UserService userService) {
         this.authorService = authorService;
+        this.userService = userService;
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AuthorDto> create(@RequestBody @Valid AuthorDto dto) {
+    public ResponseEntity<AuthorDto> create(@RequestHeader("Authorization") String token,
+                                            @RequestBody @Valid AuthorDto dto) {
+        userService.validateRole(token, Role.ADMIN);
         return ResponseEntity.status(HttpStatus.CREATED).body(authorService.create(dto));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Page<AuthorDto>> getAll(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<AuthorDto>> getAll(@RequestHeader("Authorization") String token,
+                                                  @RequestParam(defaultValue = "0") int page,
                                                   @RequestParam(defaultValue = "10") int size) {
+        userService.validateRoles(token, Role.USER, Role.ADMIN);
         return ResponseEntity.ok(authorService.getAll(PageRequest.of(page, size)));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<AuthorDto> getById(@PathVariable Long id) {
+    public ResponseEntity<AuthorDto> getById(@RequestHeader("Authorization") String token,
+                                             @PathVariable Long id) {
+        userService.validateRoles(token, Role.USER, Role.ADMIN);
         return ResponseEntity.ok(authorService.getById(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AuthorDto> update(@PathVariable Long id, @RequestBody @Valid AuthorDto dto) {
+    public ResponseEntity<AuthorDto> update(@RequestHeader("Authorization") String token,
+                                            @PathVariable Long id,
+                                            @RequestBody @Valid AuthorDto dto) {
+        userService.validateRole(token, Role.ADMIN);
         return ResponseEntity.ok(authorService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@RequestHeader("Authorization") String token,
+                                       @PathVariable Long id) {
+        userService.validateRole(token, Role.ADMIN);
         authorService.delete(id);
         return ResponseEntity.noContent().build();
     }

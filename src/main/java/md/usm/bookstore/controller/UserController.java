@@ -2,14 +2,13 @@ package md.usm.bookstore.controller;
 
 import jakarta.validation.Valid;
 import md.usm.bookstore.dto.UserDto;
+import md.usm.bookstore.model.Role;
+import md.usm.bookstore.model.User;
 import md.usm.bookstore.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -22,35 +21,40 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<UserDto>> getAll(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<UserDto>> getAll(@RequestHeader("Authorization") String token,
+                                                @RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "10") int size) {
+        userService.validateRole(token, Role.ADMIN);
         return ResponseEntity.ok(userService.getAll(PageRequest.of(page, size)));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto> getById(@PathVariable Long id) {
+    public ResponseEntity<UserDto> getById(@RequestHeader("Authorization") String token,
+                                           @PathVariable Long id) {
+        userService.validateRole(token, Role.ADMIN);
         return ResponseEntity.ok(userService.getById(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    public ResponseEntity<UserDto> update(@PathVariable Long id, @RequestBody @Valid UserDto dto, Principal principal) {
-        return ResponseEntity.ok(userService.update(id, dto, principal));
+    public ResponseEntity<UserDto> update(@RequestHeader("Authorization") String token,
+                                          @PathVariable Long id,
+                                          @RequestBody @Valid UserDto dto) {
+        User user = userService.getUserByToken(token);
+        return ResponseEntity.ok(userService.update(id, dto, user));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@RequestHeader("Authorization") String token,
+                                       @PathVariable Long id) {
+        userService.validateRole(token, Role.ADMIN);
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/profile")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    public ResponseEntity<UserDto> getById(Principal principal) {
-        return ResponseEntity.ok(userService.getProfile(principal));
+    public ResponseEntity<UserDto> getProfile(@RequestHeader("Authorization") String token) {
+        User user = userService.getUserByToken(token);
+        return ResponseEntity.ok(userService.getProfile(user));
     }
 
 }

@@ -2,12 +2,13 @@ package md.usm.bookstore.controller;
 
 import jakarta.validation.Valid;
 import md.usm.bookstore.dto.CategoryDto;
+import md.usm.bookstore.model.Role;
 import md.usm.bookstore.service.CategoryService;
+import md.usm.bookstore.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,39 +16,47 @@ import org.springframework.web.bind.annotation.*;
 public class CategoryController {
 
     private final CategoryService categoryService;
+    private final UserService userService;
 
-    public CategoryController(CategoryService categoryService) {
+    public CategoryController(CategoryService categoryService, UserService userService) {
         this.categoryService = categoryService;
+        this.userService = userService;
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryDto> create(@RequestBody @Valid CategoryDto dto) {
+    public ResponseEntity<CategoryDto> create(@RequestHeader("Authorization") String token,
+                                              @RequestBody @Valid CategoryDto dto) {
+        userService.validateRole(token, Role.ADMIN);
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.create(dto));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Page<CategoryDto>> getAll(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<CategoryDto>> getAll(@RequestHeader("Authorization") String token,
+                                                    @RequestParam(defaultValue = "0") int page,
                                                     @RequestParam(defaultValue = "10") int size) {
+        userService.validateRoles(token, Role.USER, Role.ADMIN);
         return ResponseEntity.ok(categoryService.getAll(PageRequest.of(page, size)));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<CategoryDto> getById(@PathVariable Long id) {
+    public ResponseEntity<CategoryDto> getById(@RequestHeader("Authorization") String token,
+                                               @PathVariable Long id) {
+        userService.validateRoles(token, Role.USER, Role.ADMIN);
         return ResponseEntity.ok(categoryService.getById(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryDto> update(@PathVariable Long id, @RequestBody @Valid CategoryDto dto) {
+    public ResponseEntity<CategoryDto> update(@RequestHeader("Authorization") String token,
+                                              @PathVariable Long id,
+                                              @RequestBody @Valid CategoryDto dto) {
+        userService.validateRole(token, Role.ADMIN);
         return ResponseEntity.ok(categoryService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@RequestHeader("Authorization") String token,
+                                       @PathVariable Long id) {
+        userService.validateRole(token, Role.ADMIN);
         categoryService.delete(id);
         return ResponseEntity.noContent().build();
     }

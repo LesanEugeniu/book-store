@@ -1,10 +1,13 @@
 package md.usm.bookstore.utils;
 
 import md.usm.bookstore.model.*;
-import md.usm.bookstore.repository.*;
+import md.usm.bookstore.repository.AuthorRepository;
+import md.usm.bookstore.repository.BookRepository;
+import md.usm.bookstore.repository.CategoryRepository;
+import md.usm.bookstore.repository.UserRepository;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,15 +21,14 @@ public class DataInitializer {
     CommandLineRunner init(UserRepository userRepository,
                            BookRepository bookRepository,
                            AuthorRepository authorRepository,
-                           CategoryRepository categoryRepository,
-                           PasswordEncoder encoder) {
+                           CategoryRepository categoryRepository) {
         return _ -> {
             // Admin user
             if (userRepository.findByUsername("admin").isEmpty()) {
                 User admin = new User();
                 admin.setUsername("admin");
                 admin.setEmail("admin@test.com");
-                admin.setPassword(encoder.encode("admin123"));
+                admin.setPassword(BCrypt.hashpw("admin123", BCrypt.gensalt()));
                 admin.setRole(Role.ADMIN);
                 userRepository.save(admin);
             }

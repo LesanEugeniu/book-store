@@ -3,72 +3,79 @@ package md.usm.bookstore.controller;
 import jakarta.validation.Valid;
 import md.usm.bookstore.dto.OrderDto;
 import md.usm.bookstore.dto.PaymentDto;
+import md.usm.bookstore.model.Role;
 import md.usm.bookstore.service.OrderService;
+import md.usm.bookstore.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/v1/order")
 public class OrderController {
 
     private final OrderService orderService;
+    private final UserService userService;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, UserService userService) {
         this.orderService = orderService;
+        this.userService = userService;
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<OrderDto> create(@RequestBody @Valid OrderDto dto, Principal principal) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(dto, principal));
+    public ResponseEntity<OrderDto> create(@RequestHeader("Authorization") String token,
+                                           @RequestBody @Valid OrderDto dto) {
+        userService.validateRole(token, Role.ADMIN);
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(dto, userService.getUserByToken(token)));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<OrderDto>> getAll(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<OrderDto>> getAll(@RequestHeader("Authorization") String token,
+                                                 @RequestParam(defaultValue = "0") int page,
                                                  @RequestParam(defaultValue = "10") int size) {
+        userService.validateRole(token, Role.ADMIN);
         return ResponseEntity.ok(orderService.getAll(PageRequest.of(page, size)));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<OrderDto> getById(@PathVariable Long id, Principal principal) {
-        return ResponseEntity.ok(orderService.getById(id, principal));
+    public ResponseEntity<OrderDto> getById(@RequestHeader("Authorization") String token,
+                                            @PathVariable Long id) {
+        userService.validateRoles(token, Role.USER, Role.ADMIN);
+        return ResponseEntity.ok(orderService.getById(id, userService.getUserByToken(token)));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<OrderDto> update(@PathVariable Long id, @RequestBody @Valid OrderDto dto, Principal principal) {
-        return ResponseEntity.ok(orderService.update(id, dto, principal));
+    public ResponseEntity<OrderDto> update(@RequestHeader("Authorization") String token,
+                                           @PathVariable Long id,
+                                           @RequestBody @Valid OrderDto dto) {
+        userService.validateRoles(token, Role.USER, Role.ADMIN);
+        return ResponseEntity.ok(orderService.update(id, dto, userService.getUserByToken(token)));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@RequestHeader("Authorization") String token,
+                                       @PathVariable Long id) {
+        userService.validateRole(token, Role.ADMIN);
         orderService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/my")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public Page<OrderDto> getMyOrders(@RequestParam(defaultValue = "0") int page,
-                                      @RequestParam(defaultValue = "10") int size,
-                                      Principal principal) {
-        return orderService.getMyOrders(principal, PageRequest.of(page, size));
+    public Page<OrderDto> getMyOrders(@RequestHeader("Authorization") String token,
+                                      @RequestParam(defaultValue = "0") int page,
+                                      @RequestParam(defaultValue = "10") int size) {
+        userService.validateRoles(token, Role.USER, Role.ADMIN);
+        return orderService.getMyOrders(userService.getUserByToken(token), PageRequest.of(page, size));
     }
 
     @PostMapping("/{id}/pay")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<String> payOrder(@PathVariable() Long id,
-                                              @RequestBody @Valid PaymentDto payment,
-                                              Principal principal) {
-        return ResponseEntity.ok(orderService.payOrder(principal, id, payment));
+    public ResponseEntity<String> payOrder(@RequestHeader("Authorization") String token,
+                                           @PathVariable Long id,
+                                           @RequestBody @Valid PaymentDto payment) {
+        userService.validateRoles(token, Role.USER, Role.ADMIN);
+        return ResponseEntity.ok(orderService.payOrder(userService.getUserByToken(token), id, payment));
     }
 
 }

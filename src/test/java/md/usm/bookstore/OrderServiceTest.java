@@ -12,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 
@@ -26,7 +24,6 @@ class OrderServiceTest {
     UserRepository userRepository;
 
     @Autowired
-
     BookRepository bookRepository;
 
     @Autowired
@@ -46,7 +43,6 @@ class OrderServiceTest {
 
     private OrderDto orderDto;
     private User testUser;
-    private Principal principal;
 
     @BeforeEach
     void setUp() {
@@ -71,13 +67,11 @@ class OrderServiceTest {
 
         orderDto = new OrderDto(null, LocalDateTime.now(),
                 Collections.singletonList(mapper.toDto(book)), null, OrderStatus.CREATED);
-
-        principal = () -> "john";
     }
 
     @Test
     void create_ShouldReturnDto() {
-        OrderDto result = orderService.create(orderDto, principal);
+        OrderDto result = orderService.create(orderDto, testUser);
 
         assertNotNull(result.id());
         assertEquals(1, result.books().size());
@@ -85,8 +79,8 @@ class OrderServiceTest {
 
     @Test
     void getById_ShouldReturnOrder() {
-        OrderDto created = orderService.create(orderDto, principal);
-        OrderDto found = orderService.getById(created.id(), () -> testUser.getUsername());
+        OrderDto created = orderService.create(orderDto, testUser);
+        OrderDto found = orderService.getById(created.id(), testUser);
 
         assertEquals(created.id(), found.id());
         assertEquals(created.books().size(), found.books().size());
@@ -94,32 +88,32 @@ class OrderServiceTest {
 
     @Test
     void getMyOrders_ShouldReturnOrders() {
-        orderService.create(orderDto, principal);
-        Page<OrderDto> page = orderService.getMyOrders(() -> testUser.getUsername(), Pageable.unpaged());
+        orderService.create(orderDto, testUser);
+        Page<OrderDto> page = orderService.getMyOrders(testUser, Pageable.unpaged());
 
         assertEquals(1, page.getTotalElements());
     }
 
     @Test
     void update_ShouldModifyOrder() {
-        OrderDto created = orderService.create(orderDto, principal);
+        OrderDto created = orderService.create(orderDto, testUser);
 
         OrderDto updateDto = new OrderDto(null, LocalDateTime.now().plusDays(1), null, null,
                 OrderStatus.CREATED);
-        OrderDto updated = orderService.update(created.id(), updateDto, () -> testUser.getUsername());
+        OrderDto updated = orderService.update(created.id(), updateDto, testUser);
 
         assertEquals(updateDto.orderDate(), updated.orderDate());
     }
 
     @Test
     void payOrder_ShouldChangeStatus() {
-        OrderDto created = orderService.create(orderDto, principal);
+        OrderDto created = orderService.create(orderDto, testUser);
         PaymentDto paymentDto = new PaymentDto(
                 created.id(),
                 "1234567812345678", "TestHolder",
                 "12/25", "2003", "112", "12321");
 
-        String message = orderService.payOrder(() -> testUser.getUsername(), created.id(), paymentDto);
+        String message = orderService.payOrder(testUser, created.id(), paymentDto);
 
         Order order = orderRepository.findById(created.id()).orElseThrow();
         assertEquals(OrderStatus.PAYED, order.getStatus());
@@ -128,7 +122,7 @@ class OrderServiceTest {
 
     @Test
     void delete_ShouldRemoveOrder() {
-        OrderDto created = orderService.create(orderDto, principal);
+        OrderDto created = orderService.create(orderDto, testUser);
         orderService.delete(created.id());
 
         assertFalse(orderRepository.findById(created.id()).isPresent());

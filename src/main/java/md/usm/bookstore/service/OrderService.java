@@ -28,19 +28,17 @@ import static md.usm.bookstore.utils.ErrorType.*;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final UserService userService;
     private final Mapper mapper;
     private final BookService bookService;
 
-    public OrderService(OrderRepository orderRepository, UserService userService, Mapper mapper, BookService bookService) {
+    public OrderService(OrderRepository orderRepository, Mapper mapper, BookService bookService) {
         this.orderRepository = orderRepository;
-        this.userService = userService;
         this.mapper = mapper;
         this.bookService = bookService;
     }
 
     @Transactional
-    public OrderDto create(OrderDto orderDto, Principal principal) {
+    public OrderDto create(OrderDto orderDto, User user) {
         if (Utils.isNullOrEmpty(orderDto.books())) {
             throw new StoreException(
                     "Books cannot be null or empty",
@@ -57,7 +55,7 @@ public class OrderService {
         order.setBooks(books);
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.CREATED);
-        order.setUser(userService.getByUsername(principal.getName()));
+        order.setUser(user);
 
         return mapper.toDto(orderRepository.save(order));
     }
@@ -67,7 +65,7 @@ public class OrderService {
                 .map(mapper::toDto);
     }
 
-    public OrderDto getById(Long id, Principal principal) {
+    public OrderDto getById(Long id, User user) {
         Order order = orderRepository.findByIdWithBooksAndUser(id);
         if (order == null) {
             throw new StoreException(
@@ -77,13 +75,13 @@ public class OrderService {
             );
         }
 
-        checkPermission(order.getUser(), principal);
+        checkPermission(order.getUser(), user);
 
         return mapper.toDto(order);
     }
 
     public Order getEntityById(Long id) {
-        return orderRepository.findById(id)
+        return orderRepository.findByIdWithUser(id)
                 .orElseThrow(() -> new StoreException(
                         "Order not found with id " + id,
                         NOT_FOUND.name(),
@@ -92,11 +90,11 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDto update(Long id, OrderDto orderDto, Principal principal) {
+    public OrderDto update(Long id, OrderDto orderDto, User user) {
         Order order = getEntityById(id);
-        User user = order.getUser();
+        User userOfTheOrder = order.getUser();
 
-        checkPermission(user, principal);
+        checkPermission(userOfTheOrder, user);
         checkStatus(order);
 
         if (orderDto.orderDate() != null) order.setOrderDate(orderDto.orderDate());
@@ -116,9 +114,7 @@ public class OrderService {
         orderRepository.delete(existing);
     }
 
-    public Page<OrderDto> getMyOrders(Principal principal, Pageable pageable) {
-        User user = userService.getByUsername(principal.getName());
-
+    public Page<OrderDto> getMyOrders(User user, Pageable pageable) {
         Page<Order> orders = orderRepository.findByUserId(user.getId(), pageable);
         List<Order> allWithBooks = orderRepository.findAllWithBooks(orders.getContent());
         long total = orderRepository.countByUserId(user.getId());
@@ -126,11 +122,9 @@ public class OrderService {
         return new PageImpl<>(allWithBooks.stream().map(mapper::toDto).toList(), pageable, total);
     }
 
-    public String payOrder(Principal principal, Long orderId, PaymentDto paymentDto) {
-        User user = userService.getByUsername(principal.getName());
-        checkPermission(user, principal);
-
+    public String payOrder(User user, Long orderId, PaymentDto paymentDto) {
         Order order = getEntityById(orderId);
+        checkPermission(order.getUser(), user);
         checkStatus(order);
 
         order.setStatus(OrderStatus.PAYED);
@@ -139,8 +133,9 @@ public class OrderService {
         return String.format("Order successfully PAYED, book will be delivered at zip_code: %s", paymentDto.zipCode());
     }
 
-    private void checkPermission(User user, Principal principal) {
-        if (!user.getUsername().equals(principal.getName()) || user.getRole().equals(Role.USER)) {
+    private void checkPermission(User userOfTheOrder, User authenticatedUser) {
+        if (!authenticatedUser.getUsername().equals(userOfTheOrder.getUsername())
+                && !authenticatedUser.getRole().equals(Role.ADMIN)) {
             throw new StoreException(
                     "No permission",
                     FORBIDDEN.name(),
@@ -148,6 +143,7 @@ public class OrderService {
             );
         }
     }
+
 
     private void checkStatus(Order order) {
         if (order.getStatus().equals(OrderStatus.PAYED)) {
