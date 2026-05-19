@@ -1,6 +1,6 @@
 package md.usm.bookstore.service;
 
-import md.usm.bookstore.dto.RegistrationRequestDto;
+import md.usm.bookstore.dto.RegisterRequest;
 import md.usm.bookstore.dto.UserDto;
 import md.usm.bookstore.exception.StoreException;
 import md.usm.bookstore.model.Role;
@@ -40,8 +40,8 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto create(RegistrationRequestDto registrationRequestDto) {
-        checkUsernameUnique(registrationRequestDto.username());
+    public User create(RegisterRequest request) {
+        checkUsernameUnique(request.username());
 
         Role userRole = roleRepository.findByName(RoleEnum.USER)
                 .orElseThrow(() -> new StoreException(
@@ -52,11 +52,11 @@ public class UserService {
 
         User user = new User();
         user.setRoles(Set.of(userRole));
-        user.setPassword(passwordEncoder.encode(registrationRequestDto.password()));
-        user.setUsername(registrationRequestDto.username());
-        user.setEmail(registrationRequestDto.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setUsername(request.username());
+        user.setEmail(request.email());
 
-        return mapper.toDto(userRepository.save(user));
+        return user;
     }
 
     public Page<UserDto> getAll(Pageable pageable) {
@@ -145,4 +145,5 @@ public class UserService {
             );
         }
     }
+
 }
