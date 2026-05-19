@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class DataInitializer {
@@ -16,58 +17,77 @@ public class DataInitializer {
     @Transactional
     @Bean
     CommandLineRunner init(UserRepository userRepository,
+                           RoleRepository roleRepository,
                            BookRepository bookRepository,
                            AuthorRepository authorRepository,
                            CategoryRepository categoryRepository,
                            PasswordEncoder encoder) {
         return _ -> {
-            // Admin user
+
+            // ── Roles ────────────────────────────────────────────────────
+            Role adminRole   = roleRepository.findByName(Role.ADMIN)
+                    .orElseGet(() -> roleRepository.save(new Role(Role.ADMIN)));
+            Role managerRole = roleRepository.findByName(Role.MANAGER)
+                    .orElseGet(() -> roleRepository.save(new Role(Role.MANAGER)));
+            Role userRole    = roleRepository.findByName(Role.USER)
+                    .orElseGet(() -> roleRepository.save(new Role(Role.USER)));
+
+            // ── Admin user (all roles) ───────────────────────────────────
             if (userRepository.findByUsername("admin").isEmpty()) {
                 User admin = new User();
                 admin.setUsername("admin");
                 admin.setEmail("admin@test.com");
-                admin.setPassword(encoder.encode("admin123"));
-                admin.setRole(Role.ADMIN);
+                admin.setPassword(encoder.encode("Admin123!"));
+                admin.setRoles(Set.of(adminRole, managerRole, userRole));
                 userRepository.save(admin);
             }
 
-            // Authors
-            Author author1 = new Author("George", "Orwell");
-            Author author2 = new Author("J.K.", "Rowling");
-            Author author3 = new Author("Fyodor", "Dostoevsky");
-            Author author4 = new Author("Harper", "Lee");
-            Author author5 = new Author("J.R.R.", "Tolkien");
+            // ── Manager user ─────────────────────────────────────────────
+            if (userRepository.findByUsername("manager").isEmpty()) {
+                User manager = new User();
+                manager.setUsername("manager");
+                manager.setEmail("manager@test.com");
+                manager.setPassword(encoder.encode("Manager123!"));
+                manager.setRoles(Set.of(managerRole, userRole));
+                userRepository.save(manager);
+            }
 
-            // Categories
-            Category fiction = new Category("Fiction");
-            Category fantasy = new Category("Fantasy");
-            Category classic = new Category("Classic");
+            // ── Regular user ─────────────────────────────────────────────
+            if (userRepository.findByUsername("user").isEmpty()) {
+                User user = new User();
+                user.setUsername("user");
+                user.setEmail("user@test.com");
+                user.setPassword(encoder.encode("User1234!"));
+                user.setRoles(Set.of(userRole));
+                userRepository.save(user);
+            }
 
-            // Books
-            Book book1 = new Book("1984", "9780451524935", 15.99, List.of(author1, author2, author3), fiction);
-            Book book2 = new Book("Animal Farm", "9780451526342", 12.99, List.of(author1), fiction);
+            // ── Authors ──────────────────────────────────────────────────
+            Author author1 = new Author("George",  "Orwell");
+            Author author2 = new Author("J.K.",    "Rowling");
+            Author author3 = new Author("Fyodor",  "Dostoevsky");
+            Author author4 = new Author("Harper",  "Lee");
+            Author author5 = new Author("J.R.R.",  "Tolkien");
 
-            Book book3 = new Book("Harry Potter and the Philosopher's Stone", "9780747532699", 29.99, List.of(author1, author2, author3, author4, author5), fantasy);
-            Book book4 = new Book("Harry Potter and the Chamber of Secrets", "9780439064873", 24.99, List.of(author2, author5), fantasy);
+            // ── Categories ───────────────────────────────────────────────
+            Category fiction  = new Category("Fiction");
+            Category fantasy  = new Category("Fantasy");
+            Category classic  = new Category("Classic");
 
-            Book book5 = new Book("Crime and Punishment", "9780140449136", 19.99, List.of(author3, author4, author5), classic);
-            Book book6 = new Book("The Brothers Karamazov", "9780374528379", 21.99, List.of(author3, author1, author2), classic);
+            // ── Books ────────────────────────────────────────────────────
+            Book book1 = new Book("1984",                                           "9780451524935", 15.99, List.of(author1, author2, author3), fiction);
+            Book book2 = new Book("Animal Farm",                                    "9780451526342", 12.99, List.of(author1), fiction);
+            Book book3 = new Book("Harry Potter and the Philosopher's Stone",       "9780747532699", 29.99, List.of(author1, author2, author3, author4, author5), fantasy);
+            Book book4 = new Book("Harry Potter and the Chamber of Secrets",        "9780439064873", 24.99, List.of(author2, author5), fantasy);
+            Book book5 = new Book("Crime and Punishment",                           "9780140449136", 19.99, List.of(author3, author4, author5), classic);
+            Book book6 = new Book("The Brothers Karamazov",                         "9780374528379", 21.99, List.of(author3, author1, author2), classic);
+            Book book7 = new Book("To Kill a Mockingbird",                          "9780061120084", 14.99, List.of(author4), fiction);
+            Book book8 = new Book("The Lord of the Rings",                          "9780544003415", 39.99, List.of(author5, author2, author3), fantasy);
+            Book book9 = new Book("The Hobbit",                                     "9780261103344", 25.99, List.of(author2), fantasy);
 
-            Book book7 = new Book("To Kill a Mockingbird", "9780061120084", 14.99, List.of(author4), fiction);
-
-            Book book8 = new Book("The Lord of the Rings", "9780544003415", 39.99, List.of(author5, author2, author3), fantasy);
-            Book book9 = new Book("The Hobbit", "9780261103344", 25.99, List.of(author2), fantasy);
-
-            // Save data
             categoryRepository.saveAll(List.of(fiction, fantasy, classic));
             authorRepository.saveAll(List.of(author1, author2, author3, author4, author5));
-            bookRepository.saveAll(List.of(
-                    book1, book2,
-                    book3, book4,
-                    book5, book6,
-                    book7,
-                    book8, book9
-            ));
+            bookRepository.saveAll(List.of(book1, book2, book3, book4, book5, book6, book7, book8, book9));
         };
     }
 }

@@ -213,13 +213,18 @@ public class Mapper {
     public UserDto toDto(User user) {
         if (user == null) return null;
 
+        Set<String> roleNames = user.getRoles() == null ? Set.of() :
+                user.getRoles().stream()
+                        .map(md.usm.bookstore.model.Role::getName)
+                        .collect(Collectors.toSet());
+
         return new UserDto(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getPassword(),
                 null,
-                user.getRole(),
+                roleNames,
                 user.getCreatedAt()
         );
     }

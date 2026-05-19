@@ -6,6 +6,8 @@ import md.usm.bookstore.model.*;
 import md.usm.bookstore.repository.*;
 import md.usm.bookstore.service.OrderService;
 import md.usm.bookstore.utils.Mapper;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,6 +43,9 @@ class OrderServiceTest {
     OrderRepository orderRepository;
 
     @Autowired
+    RoleRepository roleRepository;
+
+    @Autowired
     private Mapper mapper;
 
     @Autowired
@@ -55,6 +62,7 @@ class OrderServiceTest {
         categoryRepository.deleteAll();
         authorRepository.deleteAll();
         userRepository.deleteAll();
+        roleRepository.deleteAll();
 
         Book book = new Book();
         book.setIsbn("test-isbn");
@@ -66,7 +74,11 @@ class OrderServiceTest {
         testUser.setUsername("john");
         testUser.setEmail("john@example.com");
         testUser.setPassword("pass");
-        testUser.setRole(Role.ADMIN);
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role(Role.ADMIN);
+        roleRepository.save(role);
+        roles.add(role);
+        testUser.setRoles(roles);
         userRepository.save(testUser);
 
         orderDto = new OrderDto(null, LocalDateTime.now(),

@@ -5,6 +5,7 @@ import md.usm.bookstore.dto.UserDto;
 import md.usm.bookstore.exception.StoreException;
 import md.usm.bookstore.model.Role;
 import md.usm.bookstore.model.User;
+import md.usm.bookstore.repository.RoleRepository;
 import md.usm.bookstore.repository.UserRepository;
 import md.usm.bookstore.utils.Mapper;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.util.Set;
 
 import static md.usm.bookstore.utils.ErrorType.*;
 
@@ -22,11 +24,16 @@ import static md.usm.bookstore.utils.ErrorType.*;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final Mapper mapper;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, Mapper mapper, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository,
+                       RoleRepository roleRepository,
+                       Mapper mapper,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.mapper = mapper;
         this.passwordEncoder = passwordEncoder;
     }
@@ -35,24 +42,28 @@ public class UserService {
     public UserDto create(RegistrationRequestDto registrationRequestDto) {
         checkUsernameUnique(registrationRequestDto.username());
 
+        Role userRole = roleRepository.findByName(Role.USER)
+                .orElseThrow(() -> new StoreException(
+                        "Default role USER not found",
+                        NOT_FOUND.name(),
+                        HttpStatus.INTERNAL_SERVER_ERROR.value()
+                ));
+
         User user = new User();
-        user.setRole(Role.USER);
+        user.setRoles(Set.of(userRole));
         user.setPassword(passwordEncoder.encode(registrationRequestDto.password()));
         user.setUsername(registrationRequestDto.username());
         user.setEmail(registrationRequestDto.email());
 
-        User saved = userRepository.save(user);
-        return mapper.toDto(saved);
+        return mapper.toDto(userRepository.save(user));
     }
 
     public Page<UserDto> getAll(Pageable pageable) {
-        return userRepository.findAll(pageable)
-                .map(mapper::toDto);
+        return userRepository.findAll(pageable).map(mapper::toDto);
     }
 
     public UserDto getById(Long id) {
-        User user = getEntityById(id);
-        return mapper.toDto(user);
+        return mapper.toDto(getEntityById(id));
     }
 
     public User getEntityById(Long id) {
@@ -79,9 +90,13 @@ public class UserService {
 
     @Transactional
     public UserDto update(Long id, UserDto userDto, Principal principal) {
-        User user = getEntityById(id);
+        User currentUser = getByUsername(principal.getName());
+        User targetUser  = getEntityById(id);
 
-        if (!user.getUsername().equals(principal.getName()) || user.getRole().equals(Role.USER)) {
+        boolean isAdmin = currentUser.hasRole(Role.ADMIN);
+        boolean isSelf  = currentUser.getUsername().equals(targetUser.getUsername());
+
+        if (!isAdmin && !isSelf) {
             throw new StoreException(
                     "No permission to perform this action",
                     FORBIDDEN.name(),
@@ -89,22 +104,39 @@ public class UserService {
             );
         }
 
-        checkUsernameUnique(userDto.username());
+        if (userDto.username() != null && !userDto.username().equals(targetUser.getUsername())) {
+            checkUsernameUnique(userDto.username());
+            targetUser.setUsername(userDto.username());
+        }
+        if (userDto.email()    != null) targetUser.setEmail(userDto.email());
+        if (userDto.password() != null) targetUser.setPassword(passwordEncoder.encode(userDto.password()));
 
-        if (userDto.username() != null) user.setUsername(userDto.username());
-        if (userDto.email() != null) user.setEmail(userDto.email());
-        if (userDto.password() != null) user.setPassword(passwordEncoder.encode(userDto.password()));
+        return mapper.toDto(userRepository.save(targetUser));
+    }
 
+    @Transactional
+    public UserDto assignRoles(Long id, Set<String> roleNames) {
+        User user = getEntityById(id);
+        Set<Role> roles = new java.util.HashSet<>();
+        for (String name : roleNames) {
+            Role role = roleRepository.findByName(name)
+                    .orElseThrow(() -> new StoreException(
+                            "Role not found: " + name,
+                            NOT_FOUND.name(),
+                            HttpStatus.NOT_FOUND.value()
+                    ));
+            roles.add(role);
+        }
+        user.setRoles(roles);
         return mapper.toDto(userRepository.save(user));
     }
 
     public void delete(Long id) {
-        User user = getEntityById(id);
-        userRepository.delete(user);
+        userRepository.delete(getEntityById(id));
     }
 
     private void checkUsernameUnique(String userName) {
-        if (userRepository.findByUsername(userName).isPresent()) {
+        if (userName != null && userRepository.findByUsername(userName).isPresent()) {
             throw new StoreException(
                     "Username already exists",
                     VALIDATION_ERROR.name(),
@@ -112,5 +144,4 @@ public class UserService {
             );
         }
     }
-
 }
