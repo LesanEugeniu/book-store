@@ -32,7 +32,7 @@ public class DataInitializer {
             Role userRole = roleRepository.findByName(RoleEnum.USER)
                     .orElseGet(() -> roleRepository.save(new Role(RoleEnum.USER)));
 
-            // ── Admin user (all roles) ───────────────────────────────────
+            // ── Admin user ───────────────────────────────────
             if (userRepository.findByUsername("admin").isEmpty()) {
                 User admin = new User();
                 admin.setUsername("admin");

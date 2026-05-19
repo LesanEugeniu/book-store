@@ -229,15 +229,4 @@ public class Mapper {
         );
     }
 
-    public User toEntity(UserDto dto) {
-        if (dto == null) return null;
-
-        User user = new User();
-        user.setId(dto.id());
-        user.setUsername(dto.username());
-        user.setEmail(dto.email());
-        user.setPassword(dto.password());
-
-        return user;
-    }
 }
