@@ -213,9 +213,9 @@ public class Mapper {
     public UserDto toDto(User user) {
         if (user == null) return null;
 
-        Set<String> roleNames = user.getRoles() == null ? Set.of() :
+        Set<RoleEnum> roleNames = user.getRoles() == null ? Set.of() :
                 user.getRoles().stream()
-                        .map(md.usm.bookstore.model.Role::getName)
+                        .map(Role::getName)
                         .collect(Collectors.toSet());
 
         return new UserDto(

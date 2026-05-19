@@ -2,6 +2,7 @@ package md.usm.bookstore.controller;
 
 import jakarta.validation.Valid;
 import md.usm.bookstore.dto.UserDto;
+import md.usm.bookstore.model.RoleEnum;
 import md.usm.bookstore.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -65,7 +66,7 @@ public class UserController {
     @PutMapping("/{id}/roles")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDto> assignRoles(@PathVariable Long id,
-                                               @RequestBody Set<String> roleNames) {
+                                               @RequestBody Set<RoleEnum> roleNames) {
         return ResponseEntity.ok(userService.assignRoles(id, roleNames));
     }
 }

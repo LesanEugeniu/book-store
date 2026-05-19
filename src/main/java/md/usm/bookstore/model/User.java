@@ -59,7 +59,7 @@ public class User extends BaseEntity {
         this.roles.add(role);
     }
 
-    public boolean hasRole(String roleName) {
-        return this.roles.stream().anyMatch(r -> r.getName().equals(roleName));
+    public boolean hasRole(RoleEnum role) {
+        return this.roles.stream().anyMatch(r -> r.getName().equals(role));
     }
 }

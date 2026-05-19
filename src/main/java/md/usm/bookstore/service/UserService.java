@@ -4,6 +4,7 @@ import md.usm.bookstore.dto.RegistrationRequestDto;
 import md.usm.bookstore.dto.UserDto;
 import md.usm.bookstore.exception.StoreException;
 import md.usm.bookstore.model.Role;
+import md.usm.bookstore.model.RoleEnum;
 import md.usm.bookstore.model.User;
 import md.usm.bookstore.repository.RoleRepository;
 import md.usm.bookstore.repository.UserRepository;
@@ -42,7 +43,7 @@ public class UserService {
     public UserDto create(RegistrationRequestDto registrationRequestDto) {
         checkUsernameUnique(registrationRequestDto.username());
 
-        Role userRole = roleRepository.findByName(Role.USER)
+        Role userRole = roleRepository.findByName(RoleEnum.USER)
                 .orElseThrow(() -> new StoreException(
                         "Default role USER not found",
                         NOT_FOUND.name(),
@@ -91,10 +92,10 @@ public class UserService {
     @Transactional
     public UserDto update(Long id, UserDto userDto, Principal principal) {
         User currentUser = getByUsername(principal.getName());
-        User targetUser  = getEntityById(id);
+        User targetUser = getEntityById(id);
 
-        boolean isAdmin = currentUser.hasRole(Role.ADMIN);
-        boolean isSelf  = currentUser.getUsername().equals(targetUser.getUsername());
+        boolean isAdmin = currentUser.hasRole(RoleEnum.ADMIN);
+        boolean isSelf = currentUser.getUsername().equals(targetUser.getUsername());
 
         if (!isAdmin && !isSelf) {
             throw new StoreException(
@@ -108,20 +109,20 @@ public class UserService {
             checkUsernameUnique(userDto.username());
             targetUser.setUsername(userDto.username());
         }
-        if (userDto.email()    != null) targetUser.setEmail(userDto.email());
+        if (userDto.email() != null) targetUser.setEmail(userDto.email());
         if (userDto.password() != null) targetUser.setPassword(passwordEncoder.encode(userDto.password()));
 
         return mapper.toDto(userRepository.save(targetUser));
     }
 
     @Transactional
-    public UserDto assignRoles(Long id, Set<String> roleNames) {
+    public UserDto assignRoles(Long id, Set<RoleEnum> roleNames) {
         User user = getEntityById(id);
         Set<Role> roles = new java.util.HashSet<>();
-        for (String name : roleNames) {
-            Role role = roleRepository.findByName(name)
+        for (RoleEnum roleName : roleNames) {
+            Role role = roleRepository.findByName(roleName)
                     .orElseThrow(() -> new StoreException(
-                            "Role not found: " + name,
+                            "Role not found: " + roleName,
                             NOT_FOUND.name(),
                             HttpStatus.NOT_FOUND.value()
                     ));

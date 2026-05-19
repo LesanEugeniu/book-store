@@ -6,24 +6,21 @@ import jakarta.persistence.*;
 @Table(name = "roles")
 public class Role extends BaseEntity {
 
-    public static final String ADMIN   = "ADMIN";
-    public static final String MANAGER = "MANAGER";
-    public static final String USER    = "USER";
-
+    @Enumerated(EnumType.STRING)
     @Column(unique = true, nullable = false)
-    private String name;
+    private RoleEnum name;
 
     public Role() {}
 
-    public Role(String name) {
+    public Role(RoleEnum name) {
         this.name = name;
     }
 
-    public String getName() {
+    public RoleEnum getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(RoleEnum name) {
         this.name = name;
     }
 }

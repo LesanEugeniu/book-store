@@ -3,6 +3,7 @@ package md.usm.bookstore.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import md.usm.bookstore.model.RoleEnum;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,7 +27,7 @@ public record UserDto(
 
         List<OrderDto> orders,
 
-        Set<String> roles,
+        Set<RoleEnum> roles,
 
         LocalDateTime createdAt
 ) {

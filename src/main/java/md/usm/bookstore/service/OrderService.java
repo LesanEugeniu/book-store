@@ -140,7 +140,7 @@ public class OrderService {
     }
 
     private void checkPermission(User user, Principal principal) {
-        if (!user.getUsername().equals(principal.getName()) || user.getRoles().stream().anyMatch(r -> r.getName().equals(Role.USER))) {
+        if (!user.getUsername().equals(principal.getName()) || user.getRoles().stream().anyMatch(r -> r.getName().equals(RoleEnum.USER))) {
             throw new StoreException(
                     "No permission",
                     FORBIDDEN.name(),

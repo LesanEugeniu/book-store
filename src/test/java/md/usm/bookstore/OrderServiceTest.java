@@ -75,7 +75,7 @@ class OrderServiceTest {
         testUser.setEmail("john@example.com");
         testUser.setPassword("pass");
         Set<Role> roles = new HashSet<>();
-        Role role = new Role(Role.ADMIN);
+        Role role = new Role(RoleEnum.ADMIN);
         roleRepository.save(role);
         roles.add(role);
         testUser.setRoles(roles);
