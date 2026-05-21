@@ -4,5 +4,7 @@ public enum ErrorType {
     VALIDATION_ERROR,
     NOT_FOUND,
     FORBIDDEN,
-    BAD_REQUEST
+    BAD_REQUEST,
+    ACCESS_DENIED,
+    UNAUTHORIZED
 }

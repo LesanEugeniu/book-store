@@ -1,7 +1,12 @@
 package md.usm.bookstore.exception;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
 public class StoreException extends RuntimeException {
 
     private int statusCode;
@@ -16,23 +21,4 @@ public class StoreException extends RuntimeException {
         this.errorType = errorType;
     }
 
-    public int getStatusCode() {
-        return statusCode;
-    }
-
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
-    }
-
-    public String getErrorType() {
-        return errorType;
-    }
-
-    public void setErrorType(String errorType) {
-        this.errorType = errorType;
-    }
-
-    public LocalDateTime getThrowTime() {
-        return throwTime;
-    }
 }

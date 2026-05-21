@@ -4,10 +4,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "categories")
 public class Category extends BaseEntity {
@@ -16,18 +20,6 @@ public class Category extends BaseEntity {
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     private List<Book> books = new ArrayList<>();
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<Book> getBooks() {
-        return books;
-    }
 
     public Category() {
     }
@@ -39,10 +31,6 @@ public class Category extends BaseEntity {
     public void addBook(Book book) {
         book.setCategory(this);
         this.books.add(book);
-    }
-
-    public void setBooks(List<Book> books) {
-        this.books = books;
     }
 
     @Override

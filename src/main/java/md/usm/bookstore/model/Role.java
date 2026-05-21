@@ -1,7 +1,11 @@
 package md.usm.bookstore.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "roles")
 public class Role extends BaseEntity {
@@ -16,11 +20,4 @@ public class Role extends BaseEntity {
         this.name = name;
     }
 
-    public RoleEnum getName() {
-        return name;
-    }
-
-    public void setName(RoleEnum name) {
-        this.name = name;
-    }
 }

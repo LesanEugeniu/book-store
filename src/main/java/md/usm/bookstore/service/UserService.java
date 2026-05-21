@@ -56,7 +56,7 @@ public class UserService {
         user.setUsername(request.username());
         user.setEmail(request.email());
 
-        return user;
+        return userRepository.save(user);
     }
 
     public Page<UserDto> getAll(Pageable pageable) {

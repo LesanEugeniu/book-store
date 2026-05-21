@@ -20,14 +20,12 @@ public class BookController {
         this.bookService = bookService;
     }
 
-    // ADMIN & MANAGER – create a book
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<BookDto> create(@RequestBody @Valid BookDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.create(dto));
     }
 
-    // All authenticated – browse catalogue
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<BookDto>> getAll(@RequestParam(defaultValue = "0") int page,
@@ -35,21 +33,18 @@ public class BookController {
         return ResponseEntity.ok(bookService.getAll(PageRequest.of(page, size)));
     }
 
-    // All authenticated – view a book
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<BookDto> getById(@PathVariable Long id) {
         return ResponseEntity.ok(bookService.getById(id));
     }
 
-    // ADMIN & MANAGER – update a book
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<BookDto> update(@PathVariable Long id, @RequestBody @Valid BookDto dto) {
         return ResponseEntity.ok(bookService.update(id, dto));
     }
 
-    // ADMIN only – delete a book
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

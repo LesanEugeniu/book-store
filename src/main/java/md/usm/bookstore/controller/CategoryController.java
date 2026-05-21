@@ -20,14 +20,12 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    // ADMIN & MANAGER – create a category
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<CategoryDto> create(@RequestBody @Valid CategoryDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.create(dto));
     }
 
-    // All authenticated – browse categories
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<CategoryDto>> getAll(@RequestParam(defaultValue = "0") int page,
@@ -35,21 +33,18 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getAll(PageRequest.of(page, size)));
     }
 
-    // All authenticated – view a category
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CategoryDto> getById(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.getById(id));
     }
 
-    // ADMIN & MANAGER – update a category
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<CategoryDto> update(@PathVariable Long id, @RequestBody @Valid CategoryDto dto) {
         return ResponseEntity.ok(categoryService.update(id, dto));
     }
 
-    // ADMIN only – delete a category
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

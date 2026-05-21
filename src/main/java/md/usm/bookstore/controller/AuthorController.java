@@ -20,14 +20,12 @@ public class AuthorController {
         this.authorService = authorService;
     }
 
-    // ADMIN & MANAGER – create an author
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<AuthorDto> create(@RequestBody @Valid AuthorDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authorService.create(dto));
     }
 
-    // All authenticated – list authors
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<AuthorDto>> getAll(@RequestParam(defaultValue = "0") int page,
@@ -35,21 +33,18 @@ public class AuthorController {
         return ResponseEntity.ok(authorService.getAll(PageRequest.of(page, size)));
     }
 
-    // All authenticated – view an author
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AuthorDto> getById(@PathVariable Long id) {
         return ResponseEntity.ok(authorService.getById(id));
     }
 
-    // ADMIN & MANAGER – update an author
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<AuthorDto> update(@PathVariable Long id, @RequestBody @Valid AuthorDto dto) {
         return ResponseEntity.ok(authorService.update(id, dto));
     }
 
-    // ADMIN only – delete an author
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
